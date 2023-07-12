@@ -1,197 +1,138 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": 4,
-   "id": "926a0d12-dd27-4bda-84cc-1f3031f5fbd9",
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Actual pi -  {3: 226, 1: 247, 4: 255, 5: 267, 9: 272, 2: 262, 6: 258, 8: 259, 7: 238, 0: 216}\n",
-      "Distorted pi -  {3: 224, 1: 247, 4: 255, 5: 267, 9: 271, 2: 267, 6: 258, 8: 258, 7: 238, 0: 215}\n",
-      "Distorted Digits are - 9, 8, 3, 0\n",
-      "Filter would be : \n",
-      "  [[[255 255 255]\n",
-      "  [251 251 251]]\n",
-      "\n",
-      " [[ 94  94  94]\n",
-      "  [  0   0   0]]]\n",
-      "Password -  628\n"
-     ]
-    }
-   ],
-   "source": [
-    "# Libraries to import\n",
-    "import cv2 as cv\n",
-    "import numpy as np\n",
-    "import math\n",
-    "from mpmath import mp\n",
-    "\n",
-    "\n",
-    "# count the occurence of every digits in a list \n",
-    "def count_everything(LIST):\n",
-    "    k = {}\n",
-    "    for j in LIST:\n",
-    "        if j in k:\n",
-    "            k[j] += 1\n",
-    "        else:\n",
-    "            k[j] = 1\n",
-    "    return k\n",
-    "\n",
-    "\n",
-    "# Reading all images\n",
-    "pi_image = cv.imread('Images/pi_image.png')\n",
-    "art_picasso = cv.imread('Images/artwork_picasso.png')\n",
-    "Rick = cv.imread('Images/collage.png')\n",
-    "\n",
-    "\n",
-    "\n",
-    "# making a list of pixel values of distorted pi image\n",
-    "distort_pi_list = list()\n",
-    "for i in range(50):\n",
-    "    for j in range(50):\n",
-    "        if pi_image[i][j][0] < 100:\n",
-    "            distort_pi_list.append((pi_image[i][j][0])//10)\n",
-    "        else:\n",
-    "            distort_pi_list.append((pi_image[i][j][0])//100)\n",
-    "# len(distort_pi_list) is equal to 2500\n",
-    "\n",
-    "\n",
-    "# Now we have to generate all digits of pi upto 2500 total digits\n",
-    "# using mpmath for that\n",
-    "mp.dps = 2500 # set no. of digits\n",
-    "actual_pi_list = list()\n",
-    "for letter in str(mp.pi).replace('.', ''):\n",
-    "    actual_pi_list.append(int(letter))\n",
-    "    \n",
-    "    \n",
-    "\n",
-    "# Check occurrence of every digit in actual_pi and distort_pi\n",
-    "print(\"Actual pi - \", count_everything(actual_pi_list))\n",
-    "print(\"Distorted pi - \", count_everything(distort_pi_list))\n",
-    "print(\"Distorted Digits are - 9, 8, 3, 0\")\n",
-    "\n",
-    "# So, Distorted Digits are clearly visible in the output of above :-\n",
-    "# 3\n",
-    "# 9\n",
-    "# 8\n",
-    "# 0\n",
-    "\n",
-    "\n",
-    "\n",
-    "# Calculating Filter :-\n",
-    "temp_list = np.array([3,9,8,0])\n",
-    "temp_list = np.multiply(temp_list, math.pi*10)\n",
-    "for i in range(len(temp_list)):\n",
-    "    temp_list[i] = math.floor(temp_list[i])\n",
-    "temp_list = [int(temp_list[i]) for i in range(len(temp_list))]\n",
-    "temp_list.sort(reverse = True)\n",
-    "temp_list = np.clip(temp_list, 0 , 255)\n",
-    "Filter = np.zeros((2,2,3) , dtype = 'uint8')\n",
-    "j = 0\n",
-    "for i in range(2):\n",
-    "        Filter[i][0] = temp_list[j]\n",
-    "        Filter[i][1] = temp_list[j+1]\n",
-    "        j+=2\n",
-    "print(\"Filter would be : \\n \",Filter)\n",
-    "\n",
-    "\n",
-    "\n",
-    "# Bitwise AND :-\n",
-    "art_picasso_for_AND = art_picasso.copy()\n",
-    "for i in range(0,100,2):\n",
-    "    for j in range(0,100,2):\n",
-    "        distorted_art_and4 = cv.bitwise_and(Filter , art_picasso_for_AND[i:i+2,j:j+2])\n",
-    "        art_picasso_for_AND[i:i+2,j:j+2] = distorted_art_and4\n",
-    "        \n",
-    "# Bitwise OR :-\n",
-    "art_picasso_for_OR = art_picasso.copy()\n",
-    "for i in range(0,100,2):\n",
-    "    for j in range(0,100,2):\n",
-    "        distorted_art_and4 = cv.bitwise_or(Filter , art_picasso_for_OR[i:i+2,j:j+2])\n",
-    "        art_picasso_for_OR[i:i+2,j:j+2] = distorted_art_and4\n",
-    "        \n",
-    "# Bitwise XOR :-\n",
-    "art_picasso_for_XOR = art_picasso.copy()\n",
-    "for i in range(0,100,2):\n",
-    "    for j in range(0,100,2):\n",
-    "        distorted_art_and4 = cv.bitwise_xor(Filter , art_picasso_for_XOR[i:i+2,j:j+2])\n",
-    "        art_picasso_for_XOR[i:i+2,j:j+2] = distorted_art_and4\n",
-    "\n",
-    "        \n",
-    "\n",
-    "\n",
-    "# Now, creating Template Matching function !!\n",
-    "# The mathematical relation i have used is written in documentation is written in my documentation\n",
-    "def match_template(Template, Image):\n",
-    "    res = np.empty((8,8) , dtype = 'i')\n",
-    "    min_score = np.inf\n",
-    "    for x in range(0,800,100):\n",
-    "        for y in range(0,800,100):\n",
-    "            temp = Image[x:x+100, y:y+100] - Template\n",
-    "            temp = np.square(temp)\n",
-    "            score = np.sum(temp)\n",
-    "            res[x//100,y//100] = score\n",
-    "            if min_score > score:\n",
-    "                min_score = score\n",
-    "                x_y = (x, y)\n",
-    "    return x_y\n",
-    "TM_x_y_XOR = match_template(art_picasso_for_XOR, Rick)\n",
-    "Rick_copy = Rick.copy()\n",
-    "cv.rectangle(Rick_copy , TM_x_y_XOR , np.add(TM_x_y_XOR, (art_picasso_for_XOR.shape[0],art_picasso_for_XOR.shape[1])) , (0,255,0) , thickness = 4)\n",
-    "cv.putText(Rick_copy, text = str(TM_x_y_XOR) , org = (35, 90), color = (0,0,255) ,  fontFace = cv.FONT_HERSHEY_SIMPLEX , fontScale = 0.7 , thickness = 2)\n",
-    "cv.circle(Rick_copy, TM_x_y_XOR , 5 , (0,0,255) , thickness = cv.FILLED)\n",
-    "\n",
-    "\n",
-    "\n",
-    "# Hence, Password to Zip Folder :-\n",
-    "Sum = TM_x_y_XOR[0] + TM_x_y_XOR[1]\n",
-    "Password = Sum*math.pi\n",
-    "Password = math.floor(Password)\n",
-    "print('Password - ', Password)\n",
-    "\n",
-    "\n",
-    "\n",
-    "# Showing some images\n",
-    "cv.imshow('AND' , art_picasso_for_AND) # image produced after applying AND operator on famous potrait\n",
-    "cv.imshow('OR' , art_picasso_for_OR) # image produced after applying OR operator on famous potrait\n",
-    "cv.imshow('XOR' , art_picasso_for_XOR) # image produced after applying XOR operator on famous potrait\n",
-    "cv.imshow('Template Matcing Result' , Rick_copy) # result of template matching \n",
-    "cv.waitKey(0)\n",
-    "cv.destroyAllWindows()"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "2121e8ec-59b5-43ae-9846-d34778afe4de",
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.10.9"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+# Libraries to import
+import cv2 as cv
+import numpy as np
+import math
+from mpmath import mp
+
+
+# count the occurence of every digits in a list 
+def count_everything(LIST):
+    k = {}
+    for j in LIST:
+        if j in k:
+            k[j] += 1
+        else:
+            k[j] = 1
+    return k
+
+
+# Reading all images
+pi_image = cv.imread('Images/pi_image.png')
+art_picasso = cv.imread('Images/artwork_picasso.png')
+Rick = cv.imread('Images/collage.png')
+
+
+
+# making a list of pixel values of distorted pi image
+distort_pi_list = list()
+for i in range(50):
+    for j in range(50):
+        if pi_image[i][j][0] < 100:
+            distort_pi_list.append((pi_image[i][j][0])//10)
+        else:
+            distort_pi_list.append((pi_image[i][j][0])//100)
+# len(distort_pi_list) is equal to 2500
+
+
+# Now we have to generate all digits of pi upto 2500 total digits
+# using mpmath for that
+mp.dps = 2500 # set no. of digits
+actual_pi_list = list()
+for letter in str(mp.pi).replace('.', ''):
+    actual_pi_list.append(int(letter))
+    
+    
+
+# Check occurrence of every digit in actual_pi and distort_pi
+print("Actual pi - ", count_everything(actual_pi_list))
+print("Distorted pi - ", count_everything(distort_pi_list))
+print("Distorted Digits are - 9, 8, 3, 0")
+
+# So, Distorted Digits are clearly visible in the output of above :-
+# 3
+# 9
+# 8
+# 0
+
+
+
+# Calculating Filter :-
+temp_list = np.array([3,9,8,0])
+temp_list = np.multiply(temp_list, math.pi*10)
+for i in range(len(temp_list)):
+    temp_list[i] = math.floor(temp_list[i])
+temp_list = [int(temp_list[i]) for i in range(len(temp_list))]
+temp_list.sort(reverse = True)
+temp_list = np.clip(temp_list, 0 , 255)
+Filter = np.zeros((2,2,3) , dtype = 'uint8')
+j = 0
+for i in range(2):
+        Filter[i][0] = temp_list[j]
+        Filter[i][1] = temp_list[j+1]
+        j+=2
+print("Filter would be : \n ",Filter)
+
+
+
+# Bitwise AND :-
+art_picasso_for_AND = art_picasso.copy()
+for i in range(0,100,2):
+    for j in range(0,100,2):
+        distorted_art_and4 = cv.bitwise_and(Filter , art_picasso_for_AND[i:i+2,j:j+2])
+        art_picasso_for_AND[i:i+2,j:j+2] = distorted_art_and4
+        
+# Bitwise OR :-
+art_picasso_for_OR = art_picasso.copy()
+for i in range(0,100,2):
+    for j in range(0,100,2):
+        distorted_art_and4 = cv.bitwise_or(Filter , art_picasso_for_OR[i:i+2,j:j+2])
+        art_picasso_for_OR[i:i+2,j:j+2] = distorted_art_and4
+        
+# Bitwise XOR :-
+art_picasso_for_XOR = art_picasso.copy()
+for i in range(0,100,2):
+    for j in range(0,100,2):
+        distorted_art_and4 = cv.bitwise_xor(Filter , art_picasso_for_XOR[i:i+2,j:j+2])
+        art_picasso_for_XOR[i:i+2,j:j+2] = distorted_art_and4
+
+        
+
+
+# Now, creating Template Matching function !!
+# The mathematical relation i have used is written in documentation is written in my documentation
+def match_template(Template, Image):
+    res = np.empty((8,8) , dtype = 'i')
+    min_score = np.inf
+    for x in range(0,800,100):
+        for y in range(0,800,100):
+            temp = Image[x:x+100, y:y+100] - Template
+            temp = np.square(temp)
+            score = np.sum(temp)
+            res[x//100,y//100] = score
+            if min_score > score:
+                min_score = score
+                x_y = (x, y)
+    return x_y
+TM_x_y_XOR = match_template(art_picasso_for_XOR, Rick)
+Rick_copy = Rick.copy()
+cv.rectangle(Rick_copy , TM_x_y_XOR , np.add(TM_x_y_XOR, (art_picasso_for_XOR.shape[0],art_picasso_for_XOR.shape[1])) , (0,255,0) , thickness = 4)
+cv.putText(Rick_copy, text = str(TM_x_y_XOR) , org = (35, 90), color = (0,0,255) ,  fontFace = cv.FONT_HERSHEY_SIMPLEX , fontScale = 0.7 , thickness = 2)
+cv.circle(Rick_copy, TM_x_y_XOR , 5 , (0,0,255) , thickness = cv.FILLED)
+
+
+
+# Hence, Password to Zip Folder :-
+Sum = TM_x_y_XOR[0] + TM_x_y_XOR[1]
+Password = Sum*math.pi
+Password = math.floor(Password)
+print('Password - ', Password)
+
+
+
+# Showing some images
+cv.imshow('AND' , art_picasso_for_AND) # image produced after applying AND operator on famous potrait
+cv.imshow('OR' , art_picasso_for_OR) # image produced after applying OR operator on famous potrait
+cv.imshow('XOR' , art_picasso_for_XOR) # image produced after applying XOR operator on famous potrait
+cv.imshow('Template Matcing Result' , Rick_copy) # result of template matching 
+cv.waitKey(0)
+cv.destroyAllWindows()
