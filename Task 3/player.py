@@ -41,7 +41,7 @@ def strategy():
     player.move_horizontal(-rr_right)
     player.move_vertical(-rr_down)
     player.move_horizontal(-rr_left)
-    
+    # Doing random zig zag movement
     zz_right = player.move_horizontal(800)
     zz_up = player.move_vertical(-800)
     zz_right1 = player.move_horizontal(800)
@@ -120,7 +120,7 @@ def strategy():
     sum_y = 0
     for i in range(y , y+51):
         for j in range(x , x + 51):
-            if((j+right+1 > 614) or (j+left-1 < 0) or ((i+down+1) > 614) or (i+up-1 < 0)):
+            if((j+right+1 >= 614) or (j+left-1 < 0) or ((i+down+1) >= 614) or (i+up-1 < 0)):
                 continue
             if((int(Map[i][j+right+1]) == 0) and (int(Map[i][j+left-1]) == 0) and (int(Map[i+down+1][j]) == 0) and (int(Map[i+up-1][j]) == 0)):
                 if(check_path_x(i,j,right , left) == 1):
@@ -153,8 +153,8 @@ def strategy():
     Map_Drone = cv.circle(Map_copy, drone_loc , radius= 10, color = (0,0,0), thickness = 2)
     cv.imshow('Map With Drone Hidden', Map)
     cv.imshow('Map With Drone Revealed' , Map_Drone)
-    cv.imshow('Original Shot', original_shot)
-    cv.waitKey(0)
+    cv.imshow('Initial Position shot', original_shot)
+    cv.waitKey(0) 
     cv.destroyAllWindows()
     #This function is to localize the position of the newly created player with respect to the map
     pass
